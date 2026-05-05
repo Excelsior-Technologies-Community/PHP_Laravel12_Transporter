@@ -2,16 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Transporter\Todos\GetCompletedTodos;
+use Illuminate\Http\Request;
+use App\Transporter\Todos\GetTodos;
 
 class TodoController extends Controller
 {
-    public function index()
-    {
-        $response = \App\Transporter\Todos\GetCompletedTodos::build()->send();
+   public function index(Request $request)
+{
+    $response = GetTodos::build()->send();
 
-        $todos = json_decode($response->body(), true);
+    $todos = json_decode($response->body(), true);
 
-        return view('todos', compact('todos'));
+    // ✅ FILTER LOCALLY (IMPORTANT FIX)
+    if ($request->search) {
+        $todos = array_filter($todos, function ($todo) use ($request) {
+            return stripos($todo['title'], $request->search) !== false;
+        });
     }
+
+    if ($request->completed !== null && $request->completed !== '') {
+        $todos = array_filter($todos, function ($todo) use ($request) {
+            return (int)$todo['completed'] === (int)$request->completed;
+        });
+    }
+
+    return view('todos', [
+        'todos' => $todos,
+        'search' => $request->search,
+        'completed' => $request->completed,
+        'page' => $request->page ?? 1,
+        'pages' => 5
+    ]);
+}
 }
