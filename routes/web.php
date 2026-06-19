@@ -8,3 +8,6 @@ Route::get('/', function () {
 });
 
 Route::get('/todos', [TodoController::class, 'index']);
+Route::post('/todos', [TodoController::class, 'store'])->name('todos.store');
+Route::patch('/todos/{id}', [TodoController::class, 'update'])->name('todos.update');
+Route::get('/health', [TodoController::class, 'healthCheck']);
